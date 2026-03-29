@@ -1,25 +1,14 @@
 #!/usr/bin/env python3
 """
-GitHub BruteForceAI - Authorized Penetration Testing Tool
-Advanced GitHub login brute-force & password spraying with LLM analysis
+GitHub BruteForceAI v2.0 - Authorized Pentest Tool
 """
 
 import argparse
 import asyncio
-import logging
 import sys
-from pathlib import Path
-from brute_github_core import GitHubBruteForceCore
+import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.FileHandler('github_bruteforce.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 BANNER = """
@@ -32,29 +21,28 @@ BANNER = """
 async def main():
     print(BANNER)
     
-    parser = argparse.ArgumentParser(description="GitHub BruteForceAI - Authorized Pentest Tool")
-    parser.add_argument('--target', '-t', required=True, help='Target GitHub username(s) file')
-    parser.add_argument('--wordlist', '-w', required=True, help='Password wordlist file')
-    parser.add_argument('--mode', choices=['bruteforce', 'spray'], default='bruteforce', help='Attack mode')
-    parser.add_argument('--threads', '-T', type=int, default=10, help='Concurrent threads')
-    parser.add_argument('--delay', type=float, default=1.0, help='Delay between requests (seconds)')
-    parser.add_argument('--webhook', help='Discord/Slack webhook URL for results')
-    parser.add_argument('--proxy', help='Proxy URL (socks5:// or http://)')
+    parser = argparse.ArgumentParser(description="GitHub login pentest tool")
+    parser.add_argument('-t', '--target', required=True, help='Targets file (one username per line)')
+    parser.add_argument('-w', '--wordlist', required=True, help='Passwords file')
+    parser.add_argument('--mode', choices=['bruteforce', 'spray'], default='spray', help='Attack mode')
+    parser.add_argument('-T', '--threads', type=int, default=3, help='Threads (max 10)')
+    parser.add_argument('--delay', type=float, default=2.0, help='Delay between attempts')
+    parser.add_argument('--webhook', help='Discord/Slack webhook URL')
     
     args = parser.parse_args()
     
+    from brute_github_core import GitHubBruteForceCore
     core = GitHubBruteForceCore(
         targets_file=args.target,
         wordlist_file=args.wordlist,
         mode=args.mode,
         threads=args.threads,
         delay=args.delay,
-        webhook=args.webhook,
-        proxy=args.proxy
+        webhook=args.webhook
     )
     
-    await core.run_attack()
-    logger.info("Attack completed. Check github_bruteforce.log and results.db")
+    await core.run()
+    print("🎉 Done! Check github_results.db and logs.")
 
 if __name__ == "__main__":
     asyncio.run(main())
